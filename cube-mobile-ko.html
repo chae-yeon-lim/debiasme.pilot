@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeBiasMe 큐브</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c50:#EFF6FF;--c100:#DBEAFE;--c200:#BFDBFE;--c300:#93C5FD;
+  --c4:#60A5FA;--c5:#3B82F6;--c6:#2563EB;--c7:#1D4ED8;
+  --dark:#080D14;--s800:#1E293B;--s600:#475569;--s400:#94A3B8;--s200:#E2E8F0;--s100:#F1F5F9;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Outfit',sans-serif;color:var(--s800);background:#FAFAF8;overflow-x:hidden;}
+
+/* ── INTRO ── */
+#intro{
+  position:fixed;inset:0;z-index:900;
+  background:rgba(8,13,20,0.92);
+  display:flex;align-items:flex-end;justify-content:center;padding:1rem;
+  transition:opacity 0.35s,visibility 0.35s;
+}
+#intro.gone{opacity:0;visibility:hidden;pointer-events:none;}
+.icard{
+  background:white;border-radius:1.25rem 1.25rem 1rem 1rem;
+  padding:2rem 1.75rem 1.75rem;width:100%;max-width:420px;
+  animation:slideUp 0.42s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes slideUp{from{transform:translateY(24px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.i-logo{font-family:'Lora',serif;font-size:0.9rem;font-weight:500;margin-bottom:1.25rem;}
+.i-logo em{font-style:italic;color:var(--c5);}
+.i-h{font-family:'Lora',serif;font-size:1.3rem;font-weight:500;line-height:1.3;margin-bottom:0.4rem;}
+.i-p{font-size:0.82rem;color:var(--s400);line-height:1.6;margin-bottom:1.625rem;}
+.i-steps{display:flex;flex-direction:column;gap:0.875rem;margin-bottom:1.75rem;}
+.istep{display:flex;gap:0.875rem;align-items:flex-start;}
+.inum{width:24px;height:24px;border-radius:50%;background:var(--c50);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--c6);margin-top:1px;}
+.istep-b strong{display:block;font-size:0.875rem;font-weight:600;margin-bottom:0.1rem;}
+.istep-b span{font-size:0.78rem;color:var(--s400);}
+.i-time{font-size:0.72rem;color:var(--s400);text-align:center;margin-bottom:1rem;}
+.btn-start{width:100%;padding:0.875rem;background:var(--s800);color:white;border:none;border-radius:0.75rem;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;}
+.btn-start:hover{background:var(--c6);}
+
+/* ── PICKER ── */
+#picker{min-height:100vh;}
+.phdr{background:white;border-bottom:1px solid var(--s100);padding:0.875rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-family:'Lora',serif;font-size:0.95rem;font-weight:500;}
+.logo em{font-style:italic;color:var(--c5);}
+.phero{padding:1.75rem 1.25rem 1rem;}
+.phero h1{font-family:'Lora',serif;font-size:1.25rem;font-weight:500;margin-bottom:0.3rem;}
+.phero p{font-size:0.82rem;color:var(--s400);line-height:1.55;}
+.cube-list{padding:0.5rem 1.25rem 3rem;display:flex;flex-direction:column;gap:0.75rem;}
+.ccard{background:white;border:1.5px solid var(--s200);border-radius:1rem;display:flex;align-items:center;gap:1rem;padding:1rem 1.125rem;cursor:pointer;transition:border-color 0.2s,box-shadow 0.2s;user-select:none;}
+.ccard:active{transform:scale(0.985);}
+.cc-scene{width:44px;height:44px;perspective:120px;flex-shrink:0;}
+.cc-cube{width:44px;height:44px;position:relative;transform-style:preserve-3d;transform:rotateX(22deg) rotateY(30deg);animation:pcSpin 8s linear infinite;}
+@keyframes pcSpin{from{transform:rotateX(22deg) rotateY(30deg);}to{transform:rotateX(22deg) rotateY(390deg);}}
+.ccf{position:absolute;width:44px;height:44px;border:1px solid rgba(255,255,255,0.35);font-size:0.36rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgba(255,255,255,0.8);display:flex;align-items:center;justify-content:center;backface-visibility:visible;}
+.ccf-fr{transform:translateZ(22px);} .ccf-bk{transform:rotateY(180deg) translateZ(22px);}
+.ccf-lt{transform:rotateY(-90deg) translateZ(22px);} .ccf-rt{transform:rotateY(90deg) translateZ(22px);}
+.ccf-tp{transform:rotateX(90deg) translateZ(22px);background:rgba(255,255,255,0.15)!important;}
+.ccf-bt{transform:rotateX(-90deg) translateZ(22px);background:rgba(0,0,0,0.15)!important;}
+.cc-info{flex:1;min-width:0;}
+.cc-name{font-family:'Lora',serif;font-size:1.05rem;font-weight:500;margin-bottom:0.15rem;}
+.cc-tag{font-size:0.68rem;font-weight:600;letter-spacing:0.05em;margin-bottom:0.2rem;}
+.cc-desc{font-size:0.75rem;color:var(--s400);line-height:1.45;}
+.cc-arr{color:var(--s300);font-size:1rem;flex-shrink:0;}
+.me-b .ccf{background:#60A5FA;} .me-b{border-color:#BFDBFE;} .me-t{color:#3B82F6;}
+.me-b:hover{border-color:#93C5FD;box-shadow:0 4px 16px rgba(59,130,246,0.1);}
+.gi-b .ccf{background:#FACC15;} .gi-b{border-color:#FDE68A;} .gi-t{color:#CA8A04;}
+.gi-b:hover{border-color:#FCD34D;box-shadow:0 4px 16px rgba(234,179,8,0.1);}
+.ea-b .ccf{background:#4ADE80;} .ea-b{border-color:#BBF7D0;} .ea-t{color:#16A34A;}
+.ea-b:hover{border-color:#86EFAC;box-shadow:0 4px 16px rgba(34,197,94,0.1);}
+
+/* ── WIZARD ── */
+#wizard{display:none;flex-direction:column;min-height:100vh;}
+#wizard.on{display:flex;}
+.wzhdr{background:var(--dark);padding:0.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.wzlogo{font-family:'Lora',serif;font-size:0.88rem;font-weight:500;color:rgba(255,255,255,0.45);}
+.wzlogo em{color:var(--c4);}
+.wzbadge{display:flex;align-items:center;gap:0.35rem;font-size:0.7rem;font-weight:600;color:var(--c4);background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:2rem;padding:0.25rem 0.625rem 0.25rem 0.45rem;}
+.bdot{width:6px;height:6px;border-radius:50%;background:var(--c4);flex-shrink:0;}
+
+/* Cube net zone */
+.cube-zone{background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:1.375rem 1.25rem 1.25rem;}
+.cube-net{
+  --f:76px;
+  display:grid;grid-template-columns:repeat(4,var(--f));grid-template-rows:repeat(3,var(--f));gap:2px;
+  transition:transform 0.55s cubic-bezier(0.4,0,1,1),opacity 0.4s ease;
+  transform-origin:center center;margin-bottom:1.125rem;
+}
+.cube-net.folding{transform:scale(0.05) rotateX(50deg) rotateY(20deg);opacity:0;}
+.nf{border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.22);position:relative;transition:background 0.3s,border-color 0.3s,color 0.3s;user-select:none;}
+.nf.active{background:var(--c4);border-color:rgba(255,255,255,0.5);color:white;}
+.nf.done{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.5);}
+.nf.done::after{content:'';display:block;width:10px;height:6px;border-left:2px solid rgba(255,255,255,0.55);border-bottom:2px solid rgba(255,255,255,0.55);transform:rotate(-45deg);position:absolute;top:50%;left:50%;margin-top:-2px;margin-left:-5px;}
+.nf.done .nf-label{display:none;}
+.ne{}
+.nf-ai{grid-column:1;grid-row:1;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.35);}
+.nf-input{grid-column:1;grid-row:2;}
+.nf-data{grid-column:2;grid-row:2;}
+.nf-model{grid-column:3;grid-row:2;}
+.nf-result{grid-column:4;grid-row:2;}
+.nf-ctx{grid-column:4;grid-row:3;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.35);}
+.nf-ai{border-bottom:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf-input{border-right:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf-data{border-left:none!important;border-right:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf-model{border-left:none!important;border-right:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf-result{border-left:none!important;border-bottom:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf-ctx{border-top:1.5px dashed rgba(255,255,255,0.18)!important;}
+.nf.active{border:1.5px solid rgba(255,255,255,0.5)!important;}
+.stg-tag{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--c4);margin-bottom:0.5rem;}
+.stg-dots{display:flex;gap:0.45rem;}
+.sdot{width:28px;height:3px;border-radius:2px;background:rgba(255,255,255,0.12);transition:background 0.3s;}
+.sdot.on{background:var(--c4);}
+.sdot.done{background:rgba(255,255,255,0.3);}
+
+/* Content */
+.content-zone{flex:1;background:white;padding:1.5rem 1.25rem 6rem;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.bias-lbl{font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--s400);margin-bottom:0.625rem;}
+.bias-list{display:flex;flex-direction:column;gap:0.5rem;}
+.bpill{
+  padding:0.8rem 0.875rem;background:var(--c50);border:1.5px solid var(--c200);border-radius:0.625rem;
+  opacity:0;transform:translateY(14px);
+  animation:pillUp 0.38s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+.bpill:nth-child(1){animation-delay:0.15s;}
+.bpill:nth-child(2){animation-delay:0.32s;}
+.bpill:nth-child(3){animation-delay:0.49s;}
+@keyframes pillUp{to{opacity:1;transform:translateY(0);}}
+/* Term label inside pill */
+.ptag{font-size:0.62rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--c5);margin-bottom:0.3rem;}
+/* Question text */
+.pq{font-size:0.875rem;color:var(--s800);line-height:1.5;}
+
+.wznav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--s100);padding:0.875rem 1.25rem;display:flex;gap:0.625rem;z-index:50;}
+.btn-prev{padding:0.75rem 1.125rem;border:1.5px solid var(--s200);border-radius:0.75rem;font-family:'Outfit',sans-serif;font-size:0.875rem;font-weight:500;color:var(--s400);background:white;cursor:pointer;}
+.btn-nxt{flex:1;padding:0.75rem;background:var(--s800);color:white;border:none;border-radius:0.75rem;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:background 0.15s;}
+.btn-nxt:hover{background:var(--c6);}
+.btn-nxt.seal{background:var(--c5);}
+
+/* ── COMPLETE ── */
+#complete{display:none;flex-direction:column;min-height:100vh;}
+#complete.on{display:flex;}
+.cmp-dark{background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:2.25rem 1.25rem 1.75rem;}
+
+/* Fixed 3D cube: 120px, translateZ=60px, perspective=240px */
+.formed-scene{width:120px;height:120px;perspective:240px;margin-bottom:1.25rem;}
+.formed-cube{
+  width:120px;height:120px;position:relative;transform-style:preserve-3d;
+  transform:rotateX(22deg) rotateY(30deg);
+  opacity:0;
+}
+.formed-cube.popping{animation:cubePop 0.65s cubic-bezier(0,0,0.2,1) forwards;}
+.formed-cube.spinning{animation:cubeSpin 9s linear infinite;}
+@keyframes cubePop{
+  0%  {opacity:0;transform:scale(0.08) rotateX(22deg) rotateY(30deg);}
+  60% {opacity:1;transform:scale(1.1) rotateX(22deg) rotateY(30deg);}
+  100%{opacity:1;transform:scale(1) rotateX(22deg) rotateY(30deg);}
+}
+@keyframes cubeSpin{from{transform:rotateX(22deg) rotateY(30deg);}to{transform:rotateX(22deg) rotateY(390deg);}}
+/* The 6 cube faces — all using correct translateZ=60px for a 120px cube */
+.fc{
+  position:absolute;width:120px;height:120px;
+  border:1.5px solid rgba(255,255,255,0.28);
+  font-size:0.48rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+  color:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;
+  backface-visibility:visible;
+}
+.fc-fr{transform:translateZ(60px);}
+.fc-bk{transform:rotateY(180deg) translateZ(60px);}
+.fc-lt{transform:rotateY(-90deg) translateZ(60px);}
+.fc-rt{transform:rotateY(90deg) translateZ(60px);}
+.fc-tp{transform:rotateX(90deg) translateZ(60px);background:rgba(255,255,255,0.13)!important;}
+.fc-bt{transform:rotateX(-90deg) translateZ(60px);background:rgba(0,0,0,0.22)!important;}
+
+.cmp-complete-tag{font-size:0.65rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--c4);margin-bottom:0.4rem;}
+.cmp-title{font-family:'Lora',serif;font-size:1.3rem;font-weight:500;color:white;margin-bottom:0.3rem;}
+.cmp-sub{font-size:0.8rem;color:rgba(255,255,255,0.38);text-align:center;line-height:1.6;}
+.cmp-white{flex:1;background:white;padding:1.625rem 1.25rem 2.5rem;}
+.cmp-chip{display:inline-flex;align-items:center;gap:0.5rem;padding:0.375rem 0.875rem;background:var(--c50);border:1px solid var(--c200);border-radius:2rem;font-size:0.8rem;color:var(--c7);font-weight:500;margin-bottom:1.125rem;}
+.chipdot{width:8px;height:8px;border-radius:2px;}
+/* Simplified version notice */
+.notice-box{
+  background:var(--s100);border-radius:0.625rem;padding:0.875rem 1rem;
+  margin-bottom:1.375rem;
+}
+.notice-tag{font-size:0.6rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--s400);margin-bottom:0.25rem;}
+.notice-body{font-size:0.82rem;color:var(--s600);line-height:1.6;}
+.btn-survey{display:block;width:100%;padding:0.9rem;background:var(--c5);color:white;border:none;border-radius:0.75rem;font-family:'Outfit',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;text-align:center;text-decoration:none;margin-bottom:0.625rem;transition:background 0.15s;}
+.btn-survey:hover{background:var(--c6);}
+.btn-restart{width:100%;padding:0.75rem;background:white;color:var(--s400);border:1.5px solid var(--s200);border-radius:0.75rem;font-family:'Outfit',sans-serif;font-size:0.875rem;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- ══ INTRO ══ -->
+<div id="intro">
+  <div class="icard">
+    <div class="i-logo">De<em>Bias</em>Me</div>
+    <div class="i-h">AI 편향 탐색 큐브</div>
+    <div class="i-p">큐브의 각 면을 펼쳐보며 AI 생애주기에서 발생하는 편향을 살펴봅니다.</div>
+    <div class="i-steps">
+      <div class="istep"><div class="inum">1</div><div class="istep-b"><strong>큐브 선택</strong><span>나 / 기관 / 지구 중 하나를 선택합니다</span></div></div>
+      <div class="istep"><div class="inum">2</div><div class="istep-b"><strong>4단계 탐색</strong><span>큐브의 각 면에서 AI 편향 사례를 살펴봅니다</span></div></div>
+      <div class="istep"><div class="inum">3</div><div class="istep-b"><strong>편향큐브 완성</strong><span>탐색 완료 후 설문에 참여합니다</span></div></div>
+    </div>
+    <div class="i-time">약 5분 소요</div>
+    <button class="btn-start" onclick="startApp()">시작하기</button>
+  </div>
+</div>
+
+<!-- ══ PICKER ══ -->
+<div id="picker">
+  <header class="phdr">
+    <div class="logo">De<em>Bias</em>Me</div>
+    <div style="font-size:0.75rem;color:var(--s400);">큐브 선택</div>
+  </header>
+  <div class="phero"><h1>큐브를 선택하세요</h1><p>탐색하고 싶은 AI 편향의 차원을 선택합니다.</p></div>
+  <div class="cube-list">
+    <div class="ccard me-b" onclick="selectCube('me')">
+      <div class="cc-scene"><div class="cc-cube me-b">
+        <div class="ccf ccf-fr">입력</div><div class="ccf ccf-bk">결과</div>
+        <div class="ccf ccf-lt">데이터</div><div class="ccf ccf-rt">모델</div>
+        <div class="ccf ccf-tp">나</div><div class="ccf ccf-bt">AI</div>
+      </div></div>
+      <div class="cc-info">
+        <div class="cc-name">나</div>
+        <div class="cc-tag me-t">개인 편향</div>
+        <div class="cc-desc">나의 프롬프트, 데이터 노출, AI 출력과 인지 편향의 상호작용</div>
+      </div>
+      <div class="cc-arr">›</div>
+    </div>
+    <div class="ccard gi-b" onclick="selectCube('gigan')">
+      <div class="cc-scene"><div class="cc-cube gi-b">
+        <div class="ccf ccf-fr">입력</div><div class="ccf ccf-bk">결과</div>
+        <div class="ccf ccf-lt">데이터</div><div class="ccf ccf-rt">모델</div>
+        <div class="ccf ccf-tp">기관</div><div class="ccf ccf-bt">AI</div>
+      </div></div>
+      <div class="cc-info">
+        <div class="cc-name">기관</div>
+        <div class="cc-tag gi-t">조직 편향</div>
+        <div class="cc-desc">AI가 조직 내 의사결정, 구성원 데이터, 업무 문화에 미치는 영향</div>
+      </div>
+      <div class="cc-arr">›</div>
+    </div>
+    <div class="ccard ea-b" onclick="selectCube('earth')">
+      <div class="cc-scene"><div class="cc-cube ea-b">
+        <div class="ccf ccf-fr">입력</div><div class="ccf ccf-bk">결과</div>
+        <div class="ccf ccf-lt">데이터</div><div class="ccf ccf-rt">모델</div>
+        <div class="ccf ccf-tp">지구</div><div class="ccf ccf-bt">AI</div>
+      </div></div>
+      <div class="cc-info">
+        <div class="cc-name">지구</div>
+        <div class="cc-tag ea-t">구조적 편향</div>
+        <div class="cc-desc">AI가 초래하는 구조적 불평등, 환경 비용, 글로벌 데이터 불균형</div>
+      </div>
+      <div class="cc-arr">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WIZARD ══ -->
+<div id="wizard">
+  <header class="wzhdr">
+    <div class="wzlogo">De<em>Bias</em>Me</div>
+    <div class="wzbadge"><div class="bdot" id="bDot"></div><span id="bLabel">나 큐브</span></div>
+  </header>
+  <div class="cube-zone">
+    <div class="cube-net" id="cubeNet">
+      <div class="nf nf-ai"><span class="nf-label">AI</span></div>
+      <div class="ne"></div><div class="ne"></div><div class="ne"></div>
+      <div class="nf nf-input" id="fn-input"><span class="nf-label">입력</span></div>
+      <div class="nf nf-data"  id="fn-data"><span class="nf-label">데이터</span></div>
+      <div class="nf nf-model" id="fn-model"><span class="nf-label">모델</span></div>
+      <div class="nf nf-result" id="fn-result"><span class="nf-label">결과</span></div>
+      <div class="ne"></div><div class="ne"></div><div class="ne"></div>
+      <div class="nf nf-ctx"><span class="nf-label">CTX</span></div>
+    </div>
+    <div class="stg-tag" id="stgTag">단계 0 · 입력</div>
+    <div class="stg-dots" id="stgDots">
+      <div class="sdot on"></div><div class="sdot"></div><div class="sdot"></div><div class="sdot"></div>
+    </div>
+  </div>
+  <div class="content-zone" id="contentZone"></div>
+  <div class="wznav">
+    <button class="btn-prev" id="btnPrev" onclick="prevStage()" style="display:none">이전</button>
+    <button class="btn-nxt" id="btnNxt" onclick="nextStage()">다음 단계</button>
+  </div>
+</div>
+
+<!-- ══ COMPLETE ══ -->
+<div id="complete">
+  <div class="cmp-dark">
+    <div class="formed-scene">
+      <div class="formed-cube" id="formedCube">
+        <div class="fc fc-fr" id="fc-fr"></div>
+        <div class="fc fc-bk" id="fc-bk"></div>
+        <div class="fc fc-lt" id="fc-lt"></div>
+        <div class="fc fc-rt" id="fc-rt"></div>
+        <div class="fc fc-tp">봉인</div>
+        <div class="fc fc-bt">CTX</div>
+      </div>
+    </div>
+    <div class="cmp-complete-tag">편향큐브 완성</div>
+    <div class="cmp-title">AI 편향 탐색을 마쳤습니다</div>
+    <div class="cmp-sub">입력 - 데이터 - 모델 - 결과, 4단계를 모두 살펴봤습니다</div>
+  </div>
+  <div class="cmp-white">
+    <div class="cmp-chip"><div class="chipdot" id="chipDot"></div><span id="chipLabel">나 큐브</span></div>
+    <div class="notice-box">
+      <div class="notice-tag">안내</div>
+      <div class="notice-body">이것은 DeBiasMe 큐브 워크숍의 간소화된 체험 버전입니다. 실제 풀 워크숍에서는 팀과 함께 각 편향을 더 깊이 탐색하고, 큐브를 직접 조립하는 활동이 포함됩니다.</div>
+    </div>
+    <a href="survey-ko.html" class="btn-survey">설문 참여하기 (3분)</a>
+    <button class="btn-restart" onclick="restart()">처음부터 다시 시작</button>
+  </div>
+</div>
+
+<script>
+// ── PALETTE ─────────────────────────────────────────────────
+const PAL = {
+  me:    ['#EFF6FF','#DBEAFE','#BFDBFE','#93C5FD','#60A5FA','#3B82F6','#2563EB','#1D4ED8'],
+  gigan: ['#FEFCE8','#FEF9C3','#FDE68A','#FCD34D','#FACC15','#EAB308','#CA8A04','#A16207'],
+  earth: ['#F0FDF4','#DCFCE7','#BBF7D0','#86EFAC','#4ADE80','#22C55E','#16A34A','#15803D']
+};
+const SVARS = ['--c50','--c100','--c200','--c300','--c4','--c5','--c6','--c7'];
+
+// ── CONTENT ─────────────────────────────────────────────────
+// Each item: [term, question ending in 한 적이 있었나요?]
+const STG_KEYS = ['input','data','model','result'];
+const STG_TAGS = ['단계 0 · 입력','단계 1 · 데이터','단계 2 · 모델','단계 3 · 결과'];
+const FACE_IDS = ['fn-input','fn-data','fn-model','fn-result'];
+
+const CONTENT = {
+  me: {
+    input: [
+      ['편향된 프롬프트',   'AI가 원하는 답을 내놓도록 의도적으로 유도하는 방식으로 질문한 적이 있었나요?'],
+      ['프레이밍 가정',     '문제를 특정 방식으로 설정해서 AI 답변의 방향을 의도치 않게 결정한 적이 있었나요?'],
+      ['개인정보 공유',     '개인적이거나 민감한 정보를 무심코 AI에 입력한 적이 있었나요?']
+    ],
+    data: [
+      ['과소 대표',     'AI 답변에서 특정 집단이나 관점이 빠져 있다고 느낀 적이 있었나요?'],
+      ['역사적 편향',   'AI가 과거의 불평등한 패턴을 그대로 반복하고 있다고 느낀 적이 있었나요?'],
+      ['구식 정보',     'AI가 오래됐거나 더 이상 정확하지 않은 정보를 사용한다고 느낀 적이 있었나요?']
+    ],
+    model: [
+      ['블랙박스',     'AI가 어떻게 그 결론에 도달했는지 전혀 알 수 없다고 느낀 적이 있었나요?'],
+      ['고정관념화',   'AI가 특정 집단에 대한 편견이나 고정관념을 강화하는 방식으로 답변한 적이 있었나요?'],
+      ['책임 공백',    'AI가 틀린 결과를 냈을 때 누가 책임져야 하는지 불분명하다고 느낀 적이 있었나요?']
+    ],
+    result: [
+      ['환각',           'AI가 사실처럼 말하지만 실제로는 틀린 정보를 생성한 적이 있었나요?'],
+      ['자동화 편향',    'AI 출력을 제대로 검토하지 않고 그대로 사용한 적이 있었나요?'],
+      ['불공정한 결과',  'AI 결과가 특정 사람이나 상황에 불공평하게 적용된다고 느낀 적이 있었나요?']
+    ]
+  },
+  gigan: {
+    input: [
+      ['편향된 프롬프트',   '조직 내 기존 편견이 AI 활용 방식에 그대로 반영되고 있다고 느낀 적이 있었나요?'],
+      ['프레이밍 가정',     '조직의 관점에서 문제를 정의해서 AI가 더 다양한 가능성을 놓친 적이 있었나요?'],
+      ['지적 재산',         '저작권이 있는 내부 자료나 보고서를 검토 없이 AI에 입력한 적이 있었나요?']
+    ],
+    data: [
+      ['동의 부재',         '직원 데이터가 당사자 동의 없이 AI 학습에 활용될 수 있다는 점을 인식한 적이 있었나요?'],
+      ['과소 대표',         '소수 집단의 경험이 AI 기반 의사결정에 충분히 반영되지 않는다고 느낀 적이 있었나요?'],
+      ['문화적 배제',       '조직 특유의 문화적 맥락이 AI에 제대로 반영되지 않는다고 느낀 적이 있었나요?']
+    ],
+    model: [
+      ['블랙박스',          'AI 기반 의사결정의 근거를 구성원에게 설명하기 어려웠던 적이 있었나요?'],
+      ['책임 공백',         'AI 도구가 잘못된 결과를 낼 때 조직 내 책임 주체가 불분명하다고 느낀 적이 있었나요?'],
+      ['과도한 단순화',     'AI가 조직의 복잡한 상황을 지나치게 단순화한다고 느낀 적이 있었나요?']
+    ],
+    result: [
+      ['자동화 편향',       'AI 결과를 전문가 판단보다 더 신뢰하게 되는 경향이 조직 내에 있다고 느낀 적이 있었나요?'],
+      ['불공정한 결과',     'AI 기반 평가나 결정이 특정 구성원에게 불공평하게 적용된다고 느낀 적이 있었나요?'],
+      ['환각',              'AI가 생성한 보고서나 결과물에 사실과 다른 내용이 포함된 적이 있었나요?']
+    ]
+  },
+  earth: {
+    input: [
+      ['문화적 기본값',     'AI가 서구권 중심의 프레임으로 문제를 정의하고 있다고 느낀 적이 있었나요?'],
+      ['과소 대표',         '비영어권이나 비서구권의 관점이 AI에 충분히 반영되지 않는다고 느낀 적이 있었나요?'],
+      ['지적 재산',         '글로벌 사우스의 지식과 문화가 AI 학습에 적절히 포함되지 않는다는 점을 인식한 적이 있었나요?']
+    ],
+    data: [
+      ['동의 부재',         'AI 훈련 데이터가 특정 지역 사람들의 동의 없이 수집되었을 수 있다는 점을 생각해본 적이 있었나요?'],
+      ['역사적 편향',       '식민지 역사나 사회적 차별이 AI 훈련 데이터에 그대로 반영되어 있다고 느낀 적이 있었나요?'],
+      ['과소 대표',         '전 세계 다양한 언어와 문화가 AI 데이터에서 충분히 대표되지 않는다고 느낀 적이 있었나요?']
+    ],
+    model: [
+      ['책임 공백',         'AI 기업이 글로벌 사회에 미치는 영향에 대한 책임을 지지 않는다고 느낀 적이 있었나요?'],
+      ['문화적 기본값',     'AI가 서구적 기준을 전 세계 표준으로 적용하고 있다고 느낀 적이 있었나요?'],
+      ['블랙박스',          'AI가 전 세계에 미치는 영향을 추적하거나 파악하기 어렵다고 느낀 적이 있었나요?']
+    ],
+    result: [
+      ['불공정한 결과',     'AI 예측 시스템이 소외된 집단에서 더 많은 오류를 낸다는 사실을 인식한 적이 있었나요?'],
+      ['환경 비용',         'AI 인프라의 환경적 비용이 특정 지역에 집중된다는 점을 생각해본 적이 있었나요?'],
+      ['자동화 편향',       '알고리즘 시스템이 기존의 사회적 불평등을 자동으로 확산시킬 수 있다는 점을 인식한 적이 있었나요?']
+    ]
+  }
+};
+
+const DIM_NAME = { me:'나 큐브', gigan:'기관 큐브', earth:'지구 큐브' };
+
+// ── STATE ───────────────────────────────────────────────────
+let dim = null, stage = 0;
+
+// ── APP ─────────────────────────────────────────────────────
+function startApp() {
+  document.getElementById('intro').classList.add('gone');
+}
+
+function selectCube(d) {
+  dim = d; stage = 0;
+  PAL[d].forEach((v,i) => document.documentElement.style.setProperty(SVARS[i], v));
+  document.getElementById('bLabel').textContent = DIM_NAME[d];
+  document.getElementById('bDot').style.background = PAL[d][4];
+  document.getElementById('picker').style.display = 'none';
+  document.getElementById('wizard').classList.add('on');
+  document.getElementById('cubeNet').classList.remove('folding');
+  renderStage();
+}
+
+function renderStage() {
+  const sid = STG_KEYS[stage];
+  const items = CONTENT[dim][sid];
+
+  // Net face states
+  FACE_IDS.forEach((id,i) => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+    if (i < stage) el.classList.add('done');
+    else if (i === stage) el.classList.add('active');
+  });
+
+  // Stage tag + progress dots
+  document.getElementById('stgTag').textContent = STG_TAGS[stage];
+  const dots = document.getElementById('stgDots').children;
+  for (let i = 0; i < 4; i++) {
+    dots[i].className = 'sdot' + (i < stage ? ' done' : i === stage ? ' on' : '');
+  }
+
+  // Nav buttons
+  document.getElementById('btnPrev').style.display = stage > 0 ? 'block' : 'none';
+  const nxt = document.getElementById('btnNxt');
+  nxt.textContent = stage === 3 ? '편향큐브 완성' : '다음 단계';
+  nxt.className = 'btn-nxt' + (stage === 3 ? ' seal' : '');
+
+  // Content: replacing DOM re-fires animations each time
+  document.getElementById('contentZone').innerHTML =
+    `<div class="bias-lbl">이런 경험, 한 적 있으신가요?</div>
+     <div class="bias-list">
+       ${items.map(([term, q]) =>
+         `<div class="bpill">
+            <div class="ptag">${term}</div>
+            <div class="pq">${q}</div>
+          </div>`
+       ).join('')}
+     </div>`;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStage() {
+  if (stage < 3) { stage++; renderStage(); }
+  else sealCube();
+}
+function prevStage() {
+  if (stage > 0) { stage--; renderStage(); }
+}
+
+// ── SEAL ────────────────────────────────────────────────────
+function sealCube() {
+  // Mark all net faces done
+  FACE_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active'); el.classList.add('done');
+  });
+
+  // Net fold animation
+  document.getElementById('cubeNet').classList.add('folding');
+
+  const p = PAL[dim];
+
+  setTimeout(() => {
+    document.getElementById('wizard').classList.remove('on');
+
+    // Color the 4 side faces of the formed cube
+    ['fc-fr','fc-bk','fc-lt','fc-rt'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.style.background = p[4]; el.style.borderColor = 'rgba(255,255,255,0.3)'; }
+    });
+
+    // Complete screen
+    document.getElementById('complete').classList.add('on');
+    document.getElementById('chipDot').style.background = p[4];
+    document.getElementById('chipLabel').textContent = DIM_NAME[dim];
+
+    // Two-phase cube animation: pop then spin
+    const cube = document.getElementById('formedCube');
+    cube.classList.add('popping');
+    setTimeout(() => {
+      cube.classList.remove('popping');
+      cube.style.opacity = '1';
+      cube.style.transform = 'rotateX(22deg) rotateY(30deg)';
+      cube.classList.add('spinning');
+    }, 680);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 580);
+}
+
+function restart() {
+  dim = null; stage = 0;
+  const cube = document.getElementById('formedCube');
+  cube.classList.remove('popping','spinning');
+  cube.style.opacity = '0';
+  cube.style.transform = 'rotateX(22deg) rotateY(30deg)';
+  document.getElementById('complete').classList.remove('on');
+  document.getElementById('picker').style.display = 'block';
+}
+</script>
+</body>
+</html>
